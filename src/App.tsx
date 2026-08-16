@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { THEMES, restyle, type Theme } from './studio'
 
 export default function App() {
@@ -9,12 +9,16 @@ export default function App() {
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
 
+  const preview = useMemo(() => (file ? URL.createObjectURL(file) : ''), [file])
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
+
   const go = async () => {
-    if (!file) return
+    // invariant: the button is disabled while file is null, so it is non-null here
+    const selected = file as File
     setBusy(true); setErr(''); setOut('')
     try {
       localStorage.setItem('gemini-key', key)
-      setOut(await restyle(file, theme, key))
+      setOut(await restyle(selected, theme, key))
     } catch (e) { setErr((e as Error).message) } finally { setBusy(false) }
   }
 
@@ -67,7 +71,7 @@ export default function App() {
         </button>
 
         {err && <p role="alert">{err}</p>}
-        {file && <img alt="Sebelum" src={URL.createObjectURL(file)} />}
+        {preview && <img alt="Sebelum" src={preview} />}
         {out && <><img alt="Sesudah" src={out} /><a href={out} download="foto-studio.png">Download</a></>}
       </section>
 

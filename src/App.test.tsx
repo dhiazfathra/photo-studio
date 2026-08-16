@@ -49,6 +49,13 @@ test('switching theme changes the selected theme', async () => {
   expect(vi.mocked(restyle).mock.calls[0][1].id).toBe('dark-premium')
 })
 
+test('clearing the selected file clears the preview', async () => {
+  const u = await upload()
+  expect(screen.getByAltText(/sebelum/i)).toBeInTheDocument()
+  await u.upload(screen.getByLabelText(/upload foto/i), [])
+  expect(screen.queryByAltText(/sebelum/i)).not.toBeInTheDocument()
+})
+
 test('renders the kangfoto landing copy', () => {
   render(<App />)
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/bikin foto produk/i)
