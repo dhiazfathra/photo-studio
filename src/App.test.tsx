@@ -48,3 +48,10 @@ test('switching theme changes the selected theme', async () => {
   await u.click(screen.getByRole('button', { name: /buat foto studio/i }))
   expect(vi.mocked(restyle).mock.calls[0][1].id).toBe('dark-premium')
 })
+
+test('renders the kangfoto landing copy', () => {
+  render(<App />)
+  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/bikin foto produk/i)
+  expect(screen.getByText(/tanpa studio, tanpa fotografer/i)).toBeInTheDocument()
+  expect(screen.getAllByRole('heading', { level: 2 }).length).toBeGreaterThanOrEqual(4)
+})
