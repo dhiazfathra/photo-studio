@@ -48,6 +48,22 @@ h1 {
   font-weight: 700;
 }
 
+.cta {
+  display: inline-block;
+  margin-top: 1.5rem;
+  background: var(--pink);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.85rem 2rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+#cta-akhir {
+  text-align: center;
+  padding: 3rem 0;
+}
+
 .steps {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -108,14 +124,27 @@ h1 {
   border: 1px solid #ddd;
 }
 
-[role='radiogroup'] {
+fieldset.tema {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  border: none;
+  padding: 0;
 }
 
-[role='radio'] {
+fieldset.tema legend {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+fieldset.tema input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+fieldset.tema label {
   border: 1px solid #ddd;
   background: #fff;
   border-radius: 999px;
@@ -124,15 +153,17 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: 0;
+  font-weight: 400;
 }
 
-[role='radio'][aria-checked='true'] {
+fieldset.tema input[type='radio']:checked + label {
   background: var(--pink);
   color: #fff;
   border-color: var(--pink);
 }
 
-[role='radio'] span {
+fieldset.tema label span {
   font-size: 0.7rem;
   max-width: 10rem;
 }

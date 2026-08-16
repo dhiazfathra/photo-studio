@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { THEMES, restyle, type Theme } from './studio'
+import { useEffect, useState } from 'react'
+import { THEMES, restyle, extFor, type Theme } from './studio'
 
 export default function App() {
   const [file, setFile] = useState<File | null>(null)
@@ -8,9 +8,20 @@ export default function App() {
   const [out, setOut] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const [preview, setPreview] = useState('')
 
-  const preview = useMemo(() => (file ? URL.createObjectURL(file) : ''), [file])
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
+  // The object URL is an external browser resource created as a side effect of `file`
+  // changing; it cannot be computed during render, so it must be synced into state here.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!file) { setPreview(''); return }
+    const url = URL.createObjectURL(file)
+    setPreview(url)
+    return () => URL.revokeObjectURL(url)
+  }, [file])
+
+  const pickFile = (f: File | null) => { setFile(f); setOut(''); setErr('') }
+  const pickTheme = (t: Theme) => { setTheme(t); setOut(''); setErr('') }
 
   const go = async () => {
     // invariant: the button is disabled while file is null, so it is non-null here
@@ -22,11 +33,17 @@ export default function App() {
     } catch (e) { setErr((e as Error).message) } finally { setBusy(false) }
   }
 
+  const clearKey = () => {
+    setKey('')
+    localStorage.removeItem('gemini-key')
+  }
+
   return (
     <main>
       <section id="hero">
         <h1>Bikin Foto Produk Pakai AI, 2 Menit Selesai</h1>
         <p className="sub">Tanpa Studio, Tanpa Fotografer</p>
+        <a className="cta" href="#editor">Coba Gratis Sekarang</a>
       </section>
 
       <section id="cara-kerja">
@@ -53,26 +70,46 @@ export default function App() {
 
       <section id="editor">
         <label htmlFor="foto">Upload Foto Produk</label>
-        <input id="foto" type="file" accept="image/*" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+        <input id="foto" type="file" accept="image/*" onChange={e => pickFile(e.target.files?.[0] ?? null)} />
 
-        <div role="radiogroup" aria-label="Tema">
+        <fieldset className="tema">
+          <legend>Tema</legend>
           {THEMES.map(t => (
-            <button key={t.id} type="button" role="radio" aria-checked={t.id === theme.id} onClick={() => setTheme(t)}>
-              {t.name}<span>{t.desc}</span>
-            </button>
+            <span key={t.id}>
+              <input
+                type="radio"
+                name="tema"
+                id={`tema-${t.id}`}
+                checked={t.id === theme.id}
+                onChange={() => pickTheme(t)}
+              />
+              <label htmlFor={`tema-${t.id}`}>
+                {t.name}<span>{t.desc}</span>
+              </label>
+            </span>
           ))}
-        </div>
+        </fieldset>
 
         <label htmlFor="key">API Key Google AI Studio</label>
-        <input id="key" type="password" value={key} onChange={e => setKey(e.target.value)} />
+        <input id="key" type="password" autoComplete="off" value={key} onChange={e => setKey(e.target.value)} />
+        <button type="button" onClick={clearKey}>Hapus API Key</button>
 
-        <button type="button" disabled={!file || !key || busy} onClick={go}>
+        <button type="button" disabled={!file || !key || busy} aria-busy={busy} onClick={go}>
           {busy ? 'Memproses…' : 'Buat Foto Studio'}
         </button>
 
+        <div role="status" aria-live="polite">
+          {busy ? 'Memproses…' : err || (out ? 'Selesai' : '')}
+        </div>
+
         {err && <p role="alert">{err}</p>}
         {preview && <img alt="Sebelum" src={preview} />}
-        {out && <><img alt="Sesudah" src={out} /><a href={out} download="foto-studio.png">Download</a></>}
+        {out && (
+          <>
+            <img alt="Sesudah" src={out} />
+            <a href={out} download={`foto-studio.${extFor(out.slice(5, out.indexOf(';')))}`}>Download</a>
+          </>
+        )}
       </section>
 
       <section id="harga">
@@ -115,6 +152,11 @@ export default function App() {
           <summary>Apakah ada biaya tambahan?</summary>
           <p>Ini adalah demo tanpa backend, pembayaran tidak aktif. Anda hanya perlu API key Gemini gratis dari Google AI Studio.</p>
         </details>
+      </section>
+
+      <section id="cta-akhir">
+        <h2>Siap Ubah Foto Produkmu?</h2>
+        <a className="cta" href="#editor">Upload Foto Sekarang</a>
       </section>
 
       <footer>

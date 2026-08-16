@@ -1,4 +1,8 @@
-import { THEMES, promptFor, restyle } from './studio'
+import { THEMES, promptFor, restyle, extFor } from './studio'
+
+test('extFor falls back to png when the mime type has no matching extension', () => {
+  expect(extFor('image/')).toBe('png')
+})
 
 test('has the 8 kangfoto themes with unique ids', () => {
   expect(THEMES).toHaveLength(8)
@@ -47,4 +51,33 @@ test('defaults mime type to image/png when the blob has none', async () => {
   await restyle(untyped, THEMES[0], 'k')
   const [, init] = fetchMock.mock.calls[0]
   expect(JSON.parse(init.body).contents[0].parts[1].inline_data.mime_type).toBe('image/png')
+})
+
+test('falls back to image/png when the api returns a non-image mime type', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ candidates: [{ content: { parts: [{ inlineData: { mimeType: 'text/plain', data: 'AAA' } }] } }] }),
+  }))
+  await expect(restyle(png, THEMES[0], 'k')).resolves.toBe('data:image/png;base64,AAA')
+})
+
+test('falls back to a status-code message when the error body is not JSON', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 502, json: async () => { throw new Error('not json') } }))
+  await expect(restyle(png, THEMES[0], 'k')).rejects.toThrow('Gagal (502)')
+})
+
+test('rejects with a readable-file error when FileReader fails', async () => {
+  const realFileReader = globalThis.FileReader
+  class FailingReader {
+    onerror: (() => void) | null = null
+    onload: (() => void) | null = null
+    readAsDataURL() { this.onerror?.() }
+  }
+  // @ts-expect-error stubbing FileReader for the error branch
+  globalThis.FileReader = FailingReader
+  try {
+    await expect(restyle(png, THEMES[0], 'k')).rejects.toThrow('Gagal membaca file')
+  } finally {
+    globalThis.FileReader = realFileReader
+  }
 })

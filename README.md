@@ -21,6 +21,16 @@ This app has no server. You bring your own Gemini API key ("BYOK") from
   marked "Demo tanpa backend — pembayaran tidak aktif" (demo without a backend —
   payment is not active).
 
+### BYOK tradeoff
+
+Storing the key in `localStorage` is convenient but not secure: any script running on
+the page, and anyone with access to the device or browser profile, can read the key
+back out of `localStorage`. Use a restricted or disposable API key (scope it in Google
+AI Studio, and revoke/rotate it if you suspect exposure) — never a key with broad
+account access. The "Hapus API Key" button lets you wipe it from the browser at any
+time. The proper upgrade path for production use is a server-side proxy that holds the
+real key and never exposes it to the browser at all.
+
 ## Running locally
 
 ```bash
