@@ -1,0 +1,13 @@
+:root {
+  --bg: #faf7f2;
+  --ink: #1c1917;
+  --pink: #e0629a;
+  --amber: #e8a33d;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, sans-serif;
+}
