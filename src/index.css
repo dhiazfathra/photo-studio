@@ -163,6 +163,11 @@ fieldset.tema input[type='radio']:checked + label {
   border-color: var(--pink);
 }
 
+fieldset.tema input[type='radio']:focus-visible + label {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
 fieldset.tema label span {
   font-size: 0.7rem;
   max-width: 10rem;

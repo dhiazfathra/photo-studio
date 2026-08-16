@@ -70,7 +70,7 @@ export default function App() {
 
       <section id="editor">
         <label htmlFor="foto">Upload Foto Produk</label>
-        <input id="foto" type="file" accept="image/*" onChange={e => pickFile(e.target.files?.[0] ?? null)} />
+        <input id="foto" type="file" accept="image/*" disabled={busy} onChange={e => pickFile(e.target.files?.[0] ?? null)} />
 
         <fieldset className="tema">
           <legend>Tema</legend>
@@ -81,6 +81,7 @@ export default function App() {
                 name="tema"
                 id={`tema-${t.id}`}
                 checked={t.id === theme.id}
+                disabled={busy}
                 onChange={() => pickTheme(t)}
               />
               <label htmlFor={`tema-${t.id}`}>

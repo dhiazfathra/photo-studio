@@ -11,8 +11,9 @@ result — all in the browser.
 This app has no server. You bring your own Gemini API key ("BYOK") from
 [Google AI Studio](https://aistudio.google.com/apikey):
 
-- Your API key is stored **only in your browser's `localStorage`** — it is never sent
-  anywhere except directly to Google's Gemini API.
+- Your API key is persisted in this browser's `localStorage` and is sent to Google's
+  Gemini API when you generate an image. Any script with access to this page can read
+  the key, so this architecture does not protect against XSS or compromised client code.
 - Your uploaded photo is sent directly from the browser to Google's Gemini API
   (`generativelanguage.googleapis.com`) to be transformed. It is not sent to, or stored
   on, any server we operate.
@@ -25,9 +26,13 @@ This app has no server. You bring your own Gemini API key ("BYOK") from
 
 Storing the key in `localStorage` is convenient but not secure: any script running on
 the page, and anyone with access to the device or browser profile, can read the key
-back out of `localStorage`. Use a restricted or disposable API key (scope it in Google
-AI Studio, and revoke/rotate it if you suspect exposure) — never a key with broad
-account access. The "Hapus API Key" button lets you wipe it from the browser at any
+back out of `localStorage`. Use a separate, disposable browser key from Google AI
+Studio, and restrict it in the Google Cloud Console: limit its **API restriction** to
+the Generative Language API only, and set an **application restriction** (HTTP
+referrer) to this app's deployed domain so the key doesn't work if it leaks. Set up
+quota or billing alerts on the key so unexpected usage is caught early, and
+revoke/rotate the key if you suspect exposure — never use a key with broad account
+access. The "Hapus API Key" button lets you wipe it from the browser at any
 time. The proper upgrade path for production use is a server-side proxy that holds the
 real key and never exposes it to the browser at all.
 

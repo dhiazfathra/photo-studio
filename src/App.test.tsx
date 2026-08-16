@@ -113,6 +113,29 @@ test('generate button is aria-busy while processing', async () => {
   await screen.findByAltText(/sesudah/i)
 })
 
+test('file and theme controls are disabled while a request is pending, preventing a stale result', async () => {
+  let resolve!: (v: string) => void
+  vi.mocked(restyle).mockReturnValue(new Promise(r => { resolve = r }))
+  const u = await upload()
+  await u.type(screen.getByLabelText(/api key/i), 'k')
+  await u.click(screen.getByRole('button', { name: /buat foto studio/i }))
+
+  expect(screen.getByLabelText(/upload foto/i)).toBeDisabled()
+  const otherTheme = screen.getByRole('radio', { name: /dark premium/i })
+  expect(otherTheme).toBeDisabled()
+
+  // Attempting to change the theme while busy must not go through, since the
+  // control is disabled — this is what prevents an in-flight restyle() call
+  // (still using the original theme) from later overwriting the output with
+  // a result that no longer matches the current selection.
+  await u.click(otherTheme)
+  expect(otherTheme).not.toBeChecked()
+
+  resolve('data:image/png;base64,ZZZ')
+  await screen.findByAltText(/sesudah/i)
+  expect(vi.mocked(restyle).mock.calls[0][1].id).toBe('studio-white')
+})
+
 test('renders the kangfoto landing copy', () => {
   render(<App />)
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/bikin foto produk/i)
